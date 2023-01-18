@@ -1,0 +1,29 @@
+{
+  "name": "shalendar",
+  "version": "1.0.0",
+  "description": "Sharable calendar service ",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/omegafrog/Shalendar.git"
+  },
+  "keywords": [
+    "Calendar"
+  ],
+  "author": "jiwoo",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/omegafrog/Shalendar/issues"
+  },
+  "homepage": "https://github.com/omegafrog/Shalendar#readme",
+  "dependencies": {
+    "koa": "^2.14.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.20"
+  }
+}
