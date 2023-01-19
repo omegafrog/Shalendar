@@ -1,6 +1,14 @@
+const crypto = require('crypto');
 
-let users = [];
-let sequence = 0;
+let users = [
+    {
+        id:0,
+        name:"testUser",
+        email:"testUserEmail",
+        password: crypto.pbkdf2Sync('1234',process.env.APP_KEY,Number(process.env.PWD_ITER),255,'sha256').toString('base64')
+    }
+];
+let sequence = 1;
 
 
 exports.save=(name, email, cryptedPassword)=>{
@@ -29,5 +37,10 @@ exports.remove=(userId)=>{
 exports.findByEmail=(email)=>{
     let founded = users.filter( user => user.email === email);
     return (founded.length==0)?null:founded;
+}
+
+exports.findByUserId=(id)=>{
+    let founded = users.filter( user=> user.id === id)
+    return (founded.length == 0)?null:founded;
 }
 
