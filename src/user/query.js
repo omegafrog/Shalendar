@@ -1,46 +1,36 @@
-const crypto = require('crypto');
-
-let users = [
-    {
-        id:0,
-        name:"testUser",
-        email:"testUserEmail",
-        password: crypto.pbkdf2Sync('1234',process.env.APP_KEY,Number(process.env.PWD_ITER),255,'sha256').toString('base64')
-    }
-];
-let sequence = 1;
+const {pool} = require('../data/connection');
 
 
-exports.save=(name, email, cryptedPassword)=>{
-    // db붙이기 이전 임시 값
-    let newUser = {
-        id:sequence++,
-        name:name,
-        email:email,
-        password:cryptedPassword
-    };
-    users.push(newUser);
-    let res = {
-        affectedRows:1,
-        insertId:newUser.id
-    }
-    return res;
+
+exports.save= async (name, email, cryptedPassword)=>{
+    
+    const query = `INSERT INTO user (user_name, email, password) values (?,?,?)`;
+    return await pool(query, [name, email, cryptedPassword]);
+
 }
-exports.remove=(userId)=>{
-    let removed = users.filter( user=>user.id !== userId);
-    users = removed;
-    let res = {
-        affectedRows:1
-    }
-    return res;
+exports.remove=async (userId)=>{
+    const userTableQuery = `DELETE FROM user WHERE user_id=?`;
+    const todoTableQuery = `DELETE FROM todo JOIN calendar JOIN calendar_user_connection
+    on user_con_id=?`;
+    return await pool(userTableQuery, [userId]);
 }
-exports.findByEmail=(email)=>{
-    let founded = users.filter( user => user.email === email);
-    return (founded.length==0)?null:founded;
+exports.findByEmail=async(email)=>{
+    const query = `SELECT * FROM user WHERE email=?`;
+    let result = await pool(query, [email]);
+    if(result <=0)
+        return null;
+    else{
+        return result[0];
+    }
+    
 }
 
-exports.findByUserId=(id)=>{
-    let founded = users.filter( user=> user.id === id)
-    return (founded.length == 0)?null:founded;
+exports.findByUserId=async (id)=>{
+    const query = `SELECT * FROM user WHERE user_id = ?`;
+    let result = await pool(query, [id]);
+    if(result <=0)
+        return null;
+    else
+        return result[0];
 }
 
