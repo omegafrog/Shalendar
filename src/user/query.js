@@ -10,8 +10,7 @@ exports.save= async (name, email, cryptedPassword)=>{
 }
 exports.remove=async (userId)=>{
     const userTableQuery = `DELETE FROM user WHERE user_id=?`;
-    const todoTableQuery = `DELETE FROM todo JOIN calendar JOIN calendar_user_connection
-    on user_con_id=?`;
+    
     return await pool(userTableQuery, [userId]);
 }
 exports.findByEmail=async(email)=>{
