@@ -61,7 +61,6 @@ exports.unshareUser = async (ctx) => {
   let result = await calendarRepository.findById(calendarId);
   if (result != null) {
     let { affectedRows } = await calendarRepository.disconnect(calendarId, userId);
-    console.log("rows : "+affectedRows);
     if (affectedRows <= 0) {
       ctx.response.status = 500;
       ctx.body = {
