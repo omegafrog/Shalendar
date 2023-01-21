@@ -4,62 +4,59 @@ const userRepository = require("../user/query");
 
 exports.create = async (ctx) => {
   let { name } = ctx.request.body;
-  let { token } = ctx.request.header;
 
-  if (token == undefined) {
-    ctx.response.status = 400;
-    ctx.body = {
-      result: "잘못된 유저 토큰입니다",
-    };
-  }
-  console.log(token);
-  // token에서 userId 가져옴
-  let userId;
-  userId = verifyToken(token, ctx);
-
+  let { userId } = ctx.state;
   let user = await userRepository.findByUserId(userId);
   if (user == null) {
     ctx.response.status = 400;
     ctx.body = {
       result: "잘못된 유저 토큰입니다.",
     };
-    return;
-  }
-
-  let { affectedRows, insertId } = await calendarRepository.save(name, userId);
-
-  if (affectedRows < 0) {
-    ctx.response.status = 400;
-    ctx.body = {
-      result: "Create Calendar failed",
-    };
   } else {
-    affectedRows = await calendarRepository.connect(insertId, userId)
-      .affectedRows;
-    if (affectedRows < 0) {
-      ctx.response.status = 500;
+    let { affectedRows, insertId } = await calendarRepository.save(
+      name,
+      userId
+    );
+    if (affectedRows <= 0) {
+      ctx.response.status = 400;
       ctx.body = {
-        result: "Connect Calendar failed",
+        result: "Create Calendar failed",
       };
+      return;
     } else {
-      ctx.body = {
-        result: "ok",
-        insertId: insertId,
-      };
+      let res = await calendarRepository.connect(insertId, userId);
+      affectedRows = res.affectedRows;
+
+      if (affectedRows <= 0) {
+        ctx.response.status = 500;
+        ctx.body = {
+          result: "Connect Calendar failed",
+        };
+        return;
+      }
     }
+    ctx.status = 200;
+    ctx.body = {
+      result: "ok",
+      insertId: insertId,
+    };
   }
 };
+
 exports.delete = async (ctx) => {
-  let id = ctx.params.id;
-  let result = await calendarRepository.findById(id);
+  let calendarId = ctx.params.id;
+  let result = await calendarRepository.findById(calendarId);
+  // 캘린더가 있는지 찾기
   if (result == null) {
     ctx.response.status = 400;
     ctx.body = {
-      result: "id가 " + id + "인 캘린더는 없습니다.",
+      result: "id가 " + calendarId + "인 캘린더는 없습니다.",
     };
     return;
   }
-  let { affectedRows } = await calendarRepository.disconectByCalendarId(id);
+  // 캘린더와 유저 연결 해제
+  affectedRows = await calendarRepository.disconnectByCalendarId(calendarId)
+    .affectedRows;
   if (affectedRows < 0) {
     ctx.response.status = 500;
     ctx.body = {
@@ -67,13 +64,25 @@ exports.delete = async (ctx) => {
     };
     return;
   }
-  affectedRows = await calendarRepository.remove(id).affectedRows;
-  if (affectedRows < 0) {
-    ctx.response.status = 500;
-    ctx.body = {
-      result: "Delete calendar failed",
-    };
-  } else {
+  // 캘린더를 공유하는 유저가 몇명인지 확인
+  let foundedUsers = await calendarRepository.findSharedUsers(calendarId);
+  // 캘린더를 공유하는 사람이 없으면 캘린더 삭제
+  if (foundedUsers == null) {
+    // 캘린더 삭제
+    affectedRows = await calendarRepository.remove(calendarId).affectedRows;
+    if (affectedRows < 0) {
+      ctx.response.status = 500;
+      ctx.body = {
+        result: "Delete calendar failed",
+      };
+    } else {
+      ctx.body = {
+        result: "ok",
+      };
+    }
+  }
+  // 캘린더를 공유하는 사람이 남아 있으면 그대로 두기
+  else {
     ctx.body = {
       result: "ok",
     };
@@ -83,7 +92,6 @@ exports.findById = async (ctx) => {
   let calendarId = ctx.params.id;
   if (calendarId != null) {
     let result = await calendarRepository.findById(calendarId);
-    console.log(result);
     if (result == null) {
       ctx.response.status = 400;
       ctx.body = {
@@ -104,7 +112,7 @@ exports.findById = async (ctx) => {
 };
 
 exports.findByUserId = async (ctx) => {
-  let userId = verifyToken(ctx.request.header.token, ctx);
+  let { userId } = ctx.state;
   if (userId != null) {
     let result = await calendarRepository.findByUserId(userId);
     if (result == null) {
@@ -120,16 +128,3 @@ exports.findByUserId = async (ctx) => {
     }
   }
 };
-function verifyToken(token, ctx) {
-  let userId;
-  jwt.verify(token, process.env.JWT_SECRET, (e, d) => {
-    if (e) {
-      ctx.response.status = 400;
-      ctx.body = {
-        result: "잘못된 유저 토큰입니다",
-      };
-    }
-    userId = d.id;
-  });
-  return userId;
-}
