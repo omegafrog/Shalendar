@@ -2,6 +2,12 @@ const Router = require('@koa/router');
 const router = new Router();
 const {login} = require('./auth/jwt');
 
+router.use( (ctx, next) => {
+    console.log( `URL : ${ctx.request.url}`);
+    next();
+});
+
+router.get('/', (ctx)=>{ctx.body={result:"ok"}})
 // user api 
 // login
 router.post('/users/login', require('./user/controller').login);
