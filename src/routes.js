@@ -15,6 +15,8 @@ router.post('/users/login', require('./user/controller').login);
 router.delete('/users', login, require('./user/controller').signOut);
 // register
 router.post('/users/register', require('./user/controller').register);
+// search
+router.get('/users', login, require('./user/controller').search);
 
 // calendar api
 // create

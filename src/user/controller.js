@@ -40,6 +40,29 @@ exports.register = async (ctx) => {
   }
 };
 
+exports.search = async (ctx) =>{
+  let { userId } = ctx.state;
+  if(userId == undefined){
+    ctx.response.status = 400;
+    ctx.body = {
+      result:"로그인한 유저를 찾을 수 없습니다."
+    }
+  }
+  let foundedUser = await userRepository.findByUserId(userId);
+  if(foundedUser !=null){
+    ctx.body = {
+      result:"ok",
+      user : foundedUser
+    }
+  }else{
+    ctx.response.status = 400;
+    ctx.body = {
+      result :"로그인된 유저를 찾을 수 없습니다."
+    }
+  }
+}
+
+
 exports.signOut = async (ctx) => {
   let { userId } = ctx.state;
   let affectedRows = await userRepository.remove(userId).affectedRows;
