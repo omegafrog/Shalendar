@@ -2,9 +2,9 @@ const Router = require('@koa/router');
 const router = new Router();
 const {login} = require('./auth/jwt');
 
-router.use( (ctx, next) => {
+router.use( async (ctx, next) => {
     console.log( `URL : ${ctx.request.url}`);
-    next();
+    return next();
 });
 
 router.get('/', (ctx)=>{ctx.body={result:"ok"}})
