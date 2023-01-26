@@ -62,10 +62,26 @@ exports.search = async (ctx) =>{
   }
 }
 
+exports.searchByCalendar = async( ctx)=>{
+  let calendarId = ctx.params.id;
+  let result = await userRepository.findByCalendarId(calendarId);
+  if(result<=0){
+    ctx.response.status = 400;
+    ctx.body = {
+	    result: "search failed"
+    };
+    }else{
+	    ctx.body={
+		    result: "ok",
+		    users: result
+	    }
+    }
+}
 
 exports.signOut = async (ctx) => {
   let { userId } = ctx.state;
-  let affectedRows = await userRepository.remove(userId).affectedRows;
+  let affectedRows = await userRepository.disconnect(userId).affectedRows;
+  affectedRows = await userRepository.remove(userId).affectedRows;
 
   if (affectedRows <= 0) {
     ctx.response.status = 400;
@@ -82,7 +98,7 @@ exports.signOut = async (ctx) => {
 exports.login = async (ctx) => {
   let { email, password } = ctx.request.body;
 
-  const cryptedPassword = encryptPassword(password);
+  const cryptedPassword = await encryptPassword(password);
 
   let foundedUser = await userRepository.findByEmail(email);
 
@@ -94,7 +110,7 @@ exports.login = async (ctx) => {
     return;
   }
   let token = generateToken(foundedUser);
-  if (foundedUser.password === cryptedPassword.toString("base64")) {
+  if (foundedUser.password === await cryptedPassword.toString("base64")) {
     ctx.body = {
       result: "ok",
       token: token,

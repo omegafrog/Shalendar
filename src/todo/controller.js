@@ -1,7 +1,8 @@
 const todoRepository = require("./query");
 
 exports.create = async (ctx) => {
-  let { title } = ctx.request.body;
+  let { title,created_at } = ctx.request.body;
+console.log(created_at);
   if(title == undefined){
     ctx.response.status = 400;
     ctx.body = {
@@ -12,7 +13,7 @@ exports.create = async (ctx) => {
   let calendarId = ctx.params.id;
 
   // save new todo into db
-  let { affectedRows, insertId } = await todoRepository.save(title, calendarId);
+  let { affectedRows, insertId } = await todoRepository.save(title, created_at,calendarId);
   if (affectedRows < 0) {
     ctx.response.status = 400;
     ctx.body = {
@@ -81,8 +82,8 @@ exports.findByUserId = async (ctx) => {
 exports.delete = async (ctx) => {
   let id = ctx.params.id;
   
-  let { affectedRows } = todoRepository.remove(id);
-  if (affectedRows < 0) {
+  let { affectedRows } = await todoRepository.remove(id);
+  if (affectedRows <=0) {
     ctx.response.status = 400;
     ctx.body = {
       result: "Failed to delete todo",
@@ -126,7 +127,7 @@ exports.update = async (ctx) => {
 exports.checkComplete = async (ctx) => {
   let id = ctx.params.id;
   let result = await todoRepository.findById(id);
-  result.isComplete = true;
+  result.isComplete = !result.isComplete;
   let { affectedRows } = todoRepository.update(id, result);
   if (affectedRows < 0) {
     ctx.response.status = 400;

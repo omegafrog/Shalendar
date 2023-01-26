@@ -23,6 +23,10 @@ exports.findByEmail=async(email)=>{
     }
     
 }
+exports.findByCalendarId = async(calendarId)=>{
+	const query = `SELECT user_name FROM user INNER JOIN calendar_user_connection ON calendar_conn_id = ? WHERE user_conn_id = user.user_id`;
+	return result = await pool(query, [calendarId]);
+}
 
 exports.findByUserId=async (id)=>{
     const query = `SELECT * FROM user WHERE user_id = ?`;
@@ -33,3 +37,7 @@ exports.findByUserId=async (id)=>{
         return result[0];
 }
 
+exports.disconnect=async (userId)=>{
+    const query = `DELETE FROM calendar_user_connection WHERE user_conn_id = ?`;
+    return await pool(query, [userId]);
+}

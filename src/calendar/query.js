@@ -1,9 +1,9 @@
 const { pool } = require("../data/connection");
 
 
-exports.save = async (name, userId, timestamp) => {
-  const query = `INSERT INTO calendar (calendar_name,created_at) values (?,?)`;
-  return await pool(query, [name, userId, timestamp]);
+exports.save = async (name ) => {
+  const query = `INSERT INTO calendar (calendar_name ) values (?)`;
+  return await pool(query, [name]);
 };
 exports.findById = async (id) => {
   const query = `SELECT * FROM calendar WHERE calendar_id = ?`;

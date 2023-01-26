@@ -16,6 +16,7 @@ exports.makeShareKey = async (ctx) => {
 
   ctx.body = {
     shareKey: shareKey,
+    calendarId: calendarId
   };
 };
 
@@ -23,7 +24,7 @@ exports.processShareKey = async (ctx) => {
   let { shareKey } = ctx.query;
   let { userId } = ctx.state;
   let calendarId;
-  jwt.verify(shareKey, process.env.JWT_SECRET, (e, d) => {
+  await jwt.verify(shareKey, process.env.JWT_SECRET, (e, d) => {
     if (e) {
       ctx.response.status = 400;
       ctx.body = {
@@ -33,8 +34,9 @@ exports.processShareKey = async (ctx) => {
     }
     calendarId = d.calendar_id;
   });
+  console.log(shareKey, userId);
 
-  let { affectedRows } = calendarRepository.connect(calendarId, userId);
+  let { affectedRows } = await calendarRepository.connect(calendarId, userId);
   if (affectedRows <= 0) {
     ctx.response.status = 500;
     ctx.body = {
@@ -43,6 +45,7 @@ exports.processShareKey = async (ctx) => {
   } else {
     ctx.body = {
       result: "ok",
+      insertId: Number(calendarId)
     };
   }
 };
@@ -59,6 +62,7 @@ exports.unshareUser = async (ctx) => {
   }
 
   let result = await calendarRepository.findById(calendarId);
+  console.log(calendarId, userId);
   if (result != null) {
     let { affectedRows } = await calendarRepository.disconnect(calendarId, userId);
     if (affectedRows <= 0) {
@@ -73,7 +77,8 @@ exports.unshareUser = async (ctx) => {
   }else{
     ctx.response.status = 400;
     ctx.body ={
-        result : `user ${userId}는 calendar ${calendarId}와 공유되어 있지 않습니다`
+        result : "ok",
+	description:`user ${userId}는 calendar ${calendarId}와 공유되어 있지 않습니다`
     }
   }
 };

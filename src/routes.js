@@ -3,7 +3,7 @@ const router = new Router();
 const {login} = require('./auth/jwt');
 
 router.use( async (ctx, next) => {
-    console.log( `URL : ${ctx.request.url}`);
+    console.log( `URL : ${ctx.request.method}:${ctx.request.url}`);
     return next();
 });
 
@@ -17,6 +17,8 @@ router.delete('/users', login, require('./user/controller').signOut);
 router.post('/users/register', require('./user/controller').register);
 // search
 router.get('/users', login, require('./user/controller').search);
+// search by calendar id
+router.get('/calendar/:id/user', login, require('./user/controller').searchByCalendar);
 
 // calendar api
 // create

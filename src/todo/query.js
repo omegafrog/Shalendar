@@ -3,9 +3,9 @@ const { pool } = require("../data/connection");
 let todos = [];
 let sequence = 0;
 
-exports.save = async (title, calendarId) => {
-  const query = `INSERT INTO todo (title, calendar_id) values (?,?)`;
-  return await pool(query, [title, calendarId]);
+exports.save = async (title, created_at, calendarId) => {
+  const query = `INSERT INTO todo (title, created_at, calendar_id) values (?,?,?)`;
+  return await pool(query, [title,created_at, calendarId]);
 };
 exports.findById = async (id) => {
   const query = `SELECT * FROM todo WHERE todo_id=?`;
