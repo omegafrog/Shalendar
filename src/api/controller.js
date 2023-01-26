@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const calendarRepository = require("../calendar/query");
+const userRepository = require("../user/query");
 
 exports.makeShareKey = async (ctx) => {
   let calendarId = ctx.params.id;
@@ -35,8 +36,21 @@ exports.processShareKey = async (ctx) => {
     calendarId = d.calendar_id;
   });
   console.log(shareKey, userId);
-
-  let { affectedRows } = await calendarRepository.connect(calendarId, userId);
+  let foundedUser = await userRepository.findByCalendarId(calendarId);
+  if(foundedUser!=null){
+    for (const user in foundedUser) {
+      if (Object.hasOwnProperty.call(foundedUser, user)) {
+        const userOne = foundedUser[user];
+        if(userOne.user_id == userId){
+          ctx.response.status = 400;
+          ctx.body = {
+            result:" 이미 공유된 유저입니다"
+          }
+          break;
+        }
+      }
+    }
+    let { affectedRows } = await calendarRepository.connect(calendarId, userId);
   if (affectedRows <= 0) {
     ctx.response.status = 500;
     ctx.body = {
@@ -48,6 +62,8 @@ exports.processShareKey = async (ctx) => {
       insertId: Number(calendarId)
     };
   }
+  }
+  
 };
 
 exports.unshareUser = async (ctx) => {
