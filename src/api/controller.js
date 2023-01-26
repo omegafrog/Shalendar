@@ -46,7 +46,7 @@ exports.processShareKey = async (ctx) => {
           ctx.body = {
             result:" 이미 공유된 유저입니다"
           }
-          break;
+		return;
         }
       }
     }
